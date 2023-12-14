@@ -2,11 +2,12 @@ import json
 import logging
 import os
 from base64 import b64decode
+from glob import glob
 from http import HTTPStatus
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
@@ -263,3 +264,21 @@ def frontend_review_latest() -> FeedbackSchema:
     with open(feedback_file) as file:
         content = json.loads(file.read())
         return FeedbackSchema(**content)
+
+
+@app.get("/download", response_class=StreamingResponse)
+def frontend_download_data():
+    tars = glob(f'{os.environ.get("STORAGE_DIR")}/*.tar.gz')
+    if not tars:
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="No data found")
+
+    def iter_large_file():
+        with open(f"{tars[0]}", mode="rb") as file:
+            yield from file
+
+    return StreamingResponse(
+        iter_large_file(),
+        media_type="application/x-tar",
+        # TODO: https://github.com/fedora-copr/log-detective-website/issues/63
+        headers={"Content-Disposition": f"attachment; filename={tars[0]}"},  # noqa: E702
+    )
