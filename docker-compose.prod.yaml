@@ -3,12 +3,24 @@ services:
   website:
     build:
       context: docker/production
-    image: quay.io/jkadlcik/log-detective
+      dockerfile: Dockerfile.website
+    image: quay.io/log-detective/website
     hostname: log-detective
     stdin_open: true
     tty: true
     ports:
       - 8080:8080
+    volumes:
+      - persistent:/persistent:z
+
+  cron:
+    build:
+      context: docker/production
+      dockerfile: Dockerfile.cron
+    image: quay.io/log-detective/cron
+    hostname: cron
+    stdin_open: true
+    tty: true
     volumes:
       - persistent:/persistent:z
 

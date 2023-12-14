@@ -43,7 +43,7 @@ docker-compose -f docker-compose.prod.yaml build --no-cache
 ```
 
 Push the image to quay.io
-[quay.io/jkadlcik/log-detective][quay-repo]:
+[quay.io/log-detective][quay-organization]:
 
 ```
 docker-compose -f docker-compose.prod.yaml push
@@ -77,7 +77,7 @@ oc logs -f deploy/log-detective-website
 oc rsh deploy/log-detective-website
 ```
 
-[quay-repo]: https://quay.io/repository/jkadlcik/log-detective
+[quay-organization]: https://quay.io/repository/log-detective/website
 [group1]: https://accounts.fedoraproject.org/group/communishift/
 [group2]: https://accounts.fedoraproject.org/group/communishift-log-detective/
 

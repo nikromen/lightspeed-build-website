@@ -1,0 +1,5 @@
+SHELL=/bin/bash
+PATH=/sbin:/bin:/usr/sbin:/usr/bin
+
+# run every day at 1:05AM
+5 1 * * * STORAGE_DIR=/persistent FEEDBACK_DIR=/persistent/results tar_persistent >> /var/log/cron.log 2>&1

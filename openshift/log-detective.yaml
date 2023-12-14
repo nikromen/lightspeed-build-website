@@ -18,7 +18,7 @@ spec:
             claimName: persistent
       containers:
         - name: log-detective-website
-          image: quay.io/jkadlcik/log-detective:latest
+          image: quay.io/log-detective/website:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
@@ -32,7 +32,7 @@ spec:
               cpu: "50m"
             limits:
               memory: "800Mi"
-              cpu: "1"
+              cpu: "500m"
   replicas: 1
   strategy:
     type: Recreate
@@ -47,7 +47,7 @@ metadata:
   name: persistent
 spec:
   accessModes:
-    - ReadWriteOnce
+    - ReadWriteMany
   resources:
     requests:
       storage: 100Mi
@@ -85,3 +85,23 @@ spec:
   tls:
     termination: passthrough
     insecureEdgeTerminationPolicy: None
+---
+kind: CronJob
+apiVersion: batch/v1
+metadata:
+  name: log-detective-cron
+  namespace: communishift-log-detective
+spec:
+  schedule: '@daily'
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: log-detective-cron
+              image: quay.io/log-detective/website:latest
+              args:
+                - /bin/sh
+                - "-c"
+                - STORAGE_DIR=/persistent FEEDBACK_DIR=/persistent/results tar_persistent >> /var/log/cron.log 2>&1
+          restartPolicy: OnFailure

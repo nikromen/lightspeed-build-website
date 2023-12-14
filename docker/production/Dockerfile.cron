@@ -1,0 +1,18 @@
+FROM registry.fedoraproject.org/fedora:38
+MAINTAINER copr-devel@lists.fedorahosted.org
+
+ENV ENV=production
+
+# TODO: how to get envs from env file in openshift?
+ENV STORAGE_DIR=/persistent
+ENV FEEDBACK_DIR=/persistent/results
+
+RUN dnf -y update && dnf -y install git tar && dnf clean all
+
+RUN git clone https://github.com/fedora-copr/log-detective-website.git /src
+
+RUN touch /var/log/cron.log
+
+RUN cp /src/docker/cron/files/tar_persistent.sh /bin/tar_persistent
+
+CMD ["/bin/bash"]
