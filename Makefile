@@ -1,6 +1,9 @@
+CONTAINER_ENGINE ?= $(shell command -v podman 2> /dev/null || echo docker)
+
+
 build-prod:
-	docker-compose -f docker-compose.prod.yaml build --no-cache
+	$(CONTAINER_ENGINE) -f docker-compose.prod.yaml build --no-cache
 
 # don't forget to log in to quay.io
 push-prod:
-	docker-compose -f docker-compose.prod.yaml push
+	$(CONTAINER_ENGINE) -f docker-compose.prod.yaml push
