@@ -1,0 +1,87 @@
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: log-detective-website-stg
+spec:
+  selector:
+    matchLabels:
+      component: log-detective-website-stg
+  template:
+    metadata:
+      labels:
+        component: log-detective-website-stg
+    spec:
+      volumes:
+        - name: persistent
+          persistentVolumeClaim:
+            claimName: persistent
+      containers:
+        - name: log-detective-website-stg
+          image: quay.io/log-detective/website-stg:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          volumeMounts:
+            - name: persistent
+              mountPath: /persistent
+          resources:
+            requests:
+              memory: "400Mi"
+              cpu: "50m"
+            limits:
+              memory: "800Mi"
+              cpu: "1"
+  replicas: 1
+  strategy:
+    type: Recreate
+---
+# communityshift allows only a single PVC :(((((
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  creationTimestamp: null
+  labels:
+    io.kompose.service: persistent
+  name: persistent
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Mi
+status: {}
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: log-detective-website-stg
+spec:
+  ports:
+    - name: log-detective-website-stg
+      port: 8080
+      protocol: TCP
+      targetPort: 8080
+  selector:
+    component: log-detective-website-stg
+---
+# Route stuff stolen from Packit:
+# https://github.com/packit/deployment/blob/main/openshift/packit-service.yml.j2#L147
+# Gunicorn can't do 2 domains at the same time, we need nginx for that:
+#   https://github.com/fedora-copr/log-detective-website/issues/61
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: log-detective-website-stg
+  namespace: communishift-log-detective
+spec:
+  host: log-detective.com
+  to:
+    kind: Service
+    name: log-detective-website-stg
+  port:
+    targetPort: log-detective-website-stg
+  tls:
+    termination: passthrough
+    insecureEdgeTerminationPolicy: None
